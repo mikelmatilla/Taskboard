@@ -29,4 +29,12 @@ public class UserService {
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    public User login(String email, String password) {
+        User user = findByEmail(email);
+        if (!passwordEncoder.matches(password, user.getPassword())) {
+            throw new RuntimeException("Invalid credentials");
+        }
+        return user;
+    }
 }
