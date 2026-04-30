@@ -1,0 +1,12 @@
+# Backend
+backend/build/
+backend/.gradle/
+backend/bin/
+backend/*.class
+
+# VS Code
+.vscode/
+
+# System
+.DS_Store
+Thumbs.db
