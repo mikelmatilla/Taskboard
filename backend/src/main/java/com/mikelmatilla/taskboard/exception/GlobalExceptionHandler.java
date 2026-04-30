@@ -15,5 +15,12 @@ public class GlobalExceptionHandler {
             .body(new ErrorResponse(ex.getMessage()));
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new ErrorResponse(ex.getMessage()));
+    }
+
     public record ErrorResponse(String message) {}
 }
