@@ -1,17 +1,16 @@
 import api from './axios'
-import type { AuthResponse } from '../types'
+import type { Project } from '../types'
 
-export const login = async (email: string, password: string): Promise<AuthResponse> => {
-  const response = await api.post('/auth/login', { email, password })
+export const getProjects = async (): Promise<Project[]> => {
+  const response = await api.get('/projects')
   return response.data
 }
 
-export const register = async (
-  email: string,
-  password: string,
-  username: string,
-  name: string
-): Promise<AuthResponse> => {
-  const response = await api.post('/auth/register', { email, password, username, name })
+export const createProject = async (name: string): Promise<Project> => {
+  const response = await api.post('/projects', { name })
   return response.data
+}
+
+export const deleteProject = async (id: number): Promise<void> => {
+  await api.delete(`/projects/${id}`)
 }
