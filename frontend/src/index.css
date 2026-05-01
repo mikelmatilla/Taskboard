@@ -384,3 +384,26 @@ body {
   padding: 1rem 2rem;
   border-bottom: 1px solid #eee;
 }
+
+.drag-handle {
+  cursor: grab;
+  color: #ccc;
+  font-size: 1rem;
+  padding: 2px 4px;
+  border-radius: 4px;
+  transition: color 0.2s;
+}
+
+.drag-handle:hover {
+  color: #888;
+}
+
+.column-tasks {
+  min-height: 200px;
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+
+.column-tasks:empty {
+  border: 2px dashed #ddd;
+}
