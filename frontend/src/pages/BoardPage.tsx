@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getTasks, createTask, updateTaskState, deleteTask } from '../api/tasks'
+import { getTasks, createTask, updateTaskState, updateTaskPriority, deleteTask } from '../api/tasks'
 import type { Task, TaskState, TaskPriority } from '../types'
 
 const COLUMNS: { state: TaskState; label: string }[] = [
@@ -9,6 +9,8 @@ const COLUMNS: { state: TaskState; label: string }[] = [
   { state: 'IN_PROGRESS', label: 'In Progress' },
   { state: 'DONE', label: 'Done' },
 ]
+
+const PRIORITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 }
 
 export default function BoardPage() {
   const { projectId } = useParams()
@@ -41,6 +43,14 @@ export default function BoardPage() {
     },
   })
 
+  const priorityMutation = useMutation({
+    mutationFn: ({ taskId, priority }: { taskId: number; priority: TaskPriority }) =>
+        updateTaskPriority(id, taskId, priority),
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['tasks', id] })
+    },
+  })
+
   const deleteMutation = useMutation({
     mutationFn: (taskId: number) => deleteTask(id, taskId),
     onSuccess: () => {
@@ -54,7 +64,8 @@ export default function BoardPage() {
   }
 
   const getTasksByState = (state: TaskState) =>
-    tasks?.filter((t: Task) => t.state === state) ?? []
+    tasks?.filter((t: Task) => t.state === state)
+      .sort((a: Task, b: Task) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority]) ?? []
 
   return (
     <div className="page">
@@ -115,43 +126,52 @@ export default function BoardPage() {
                 {getTasksByState(state).map((task: Task) => (
                   <div key={task.id} className="task-card">
                     <div className="task-header">
-                      <span className={`priority priority-${task.priority.toLowerCase()}`}>
-                        {task.priority}
-                      </span>
-                      <button
+                        <select
+                        className={`priority priority-${task.priority.toLowerCase()}`}
+                        value={task.priority}
+                        onChange={(e) => priorityMutation.mutate({
+                            taskId: task.id,
+                            priority: e.target.value as TaskPriority
+                        })}
+                        >
+                        <option value="LOW">LOW</option>
+                        <option value="MEDIUM">MEDIUM</option>
+                        <option value="HIGH">HIGH</option>
+                        </select>
+                        <button
                         className="btn-icon"
                         onClick={() => deleteMutation.mutate(task.id)}
-                      >
+                        >
                         ✕
-                      </button>
+                        </button>
                     </div>
                     <p className="task-name">{task.name}</p>
                     {task.description && (
-                      <p className="task-description">{task.description}</p>
+                        <p className="task-description">{task.description}</p>
                     )}
                     <div className="task-actions">
-                      {state !== 'TODO' && (
+                        {state !== 'TODO' && (
                         <button
-                          className="btn-move"
-                          onClick={() => stateMutation.mutate({
+                            className="btn-move"
+                            onClick={() => stateMutation.mutate({
                             taskId: task.id,
                             state: state === 'IN_PROGRESS' ? 'TODO' : 'IN_PROGRESS'
-                          })}
+                            })}
                         >
-                          ←
+                            ←
                         </button>
-                      )}
-                      {state !== 'DONE' && (
+                        )}
+                        {state !== 'DONE' && (
                         <button
-                          className="btn-move"
-                          onClick={() => stateMutation.mutate({
+                            className="btn-move"
+                            onClick={() => stateMutation.mutate({
                             taskId: task.id,
                             state: state === 'TODO' ? 'IN_PROGRESS' : 'DONE'
-                          })}
+                            })}
                         >
-                          →
+                            →
                         </button>
-                      )}
+                        )}
                     </div>
                   </div>
                 ))}
