@@ -3,6 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
 import { useAuthStore } from '../store/authStore'
+import ProjectDetailModal from '../components/ProjectDetailModal'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
@@ -46,6 +47,8 @@ export default function ProjectsPage() {
     navigate('/login')
   }
 
+  const [selectedProjectId, setSelectedProjectId] = useState<number | null>(null)
+
   return (
     <div className="page">
       <header className="header">
@@ -87,8 +90,19 @@ export default function ProjectsPage() {
           <div className="projects-grid">
             {projects?.map((project) => (
               <div key={project.id} className="project-card" onClick={() => navigate(`/projects/${project.id}`)}>
+                <button
+                  className="btn-icon card-settings"
+                  style={{ fontSize: '1.5rem' }}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    setSelectedProjectId(project.id)
+                  }}
+                  title="Project details"
+                >
+                  ⚙
+                </button>
                 <h3>{project.name}</h3>
-                <p>{project.members.length} members</p>
+                <p>{project.members.length +1} members</p>  
                 <button
                   className="btn-danger"
                   onClick={(e) => {
@@ -103,6 +117,12 @@ export default function ProjectsPage() {
           </div>
         )}
       </main>
+      {selectedProjectId && (
+        <ProjectDetailModal
+          projectId={selectedProjectId}
+          onClose={() => setSelectedProjectId(null)}
+        />
+      )}
     </div>
   )
 }
