@@ -41,3 +41,16 @@ export const updateTaskPriority = async (
 export const deleteTask = async (projectId: number, taskId: number): Promise<void> => {
   await api.delete(`/projects/${projectId}/tasks/${taskId}`)
 }
+
+export const updateTask = async (
+  projectId: number,
+  taskId: number,
+  name: string,
+  description: string
+): Promise<Task> => {
+  const response = await api.put(`/projects/${projectId}/tasks/${taskId}`, {
+    name,
+    description,
+  })
+  return response.data
+}

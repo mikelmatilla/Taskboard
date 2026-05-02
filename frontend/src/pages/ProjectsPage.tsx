@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom'
 import { getProjects, createProject, deleteProject } from '../api/projects'
 import { useAuthStore } from '../store/authStore'
 import ProjectDetailModal from '../components/ProjectDetailModal'
+import ConfirmModal from '../components/ConfirmModal'
 
 export default function ProjectsPage() {
   const navigate = useNavigate()
@@ -13,6 +14,7 @@ export default function ProjectsPage() {
 
   const [newProjectName, setNewProjectName] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [confirmProjectId, setConfirmProjectId] = useState<number | null>(null)
 
   const { data: projects, isLoading } = useQuery({
     queryKey: ['projects'],
@@ -54,7 +56,7 @@ export default function ProjectsPage() {
       <header className="header">
         <h1>Taskboard</h1>
         <div className="header-right">
-          <span>{user?.name}</span>
+          <span className="header-user">{user?.name}</span>
           <button onClick={handleLogout} className="btn-secondary">Logout</button>
         </div>
       </header>
@@ -107,13 +109,21 @@ export default function ProjectsPage() {
                   className="btn-danger"
                   onClick={(e) => {
                     e.stopPropagation()
-                    deleteMutation.mutate(project.id)
+                    setConfirmProjectId(project.id)
                   }}
                 >
                   Delete
                 </button>
               </div>
             ))}
+            {projects?.length === 0 && (
+              <div className="empty-state">
+                <p>No projects yet</p>
+                <button className="btn-primary" onClick={() => setShowForm(true)}>
+                  Create your first project
+                </button>
+              </div>
+            )}
           </div>
         )}
       </main>
@@ -121,6 +131,16 @@ export default function ProjectsPage() {
         <ProjectDetailModal
           projectId={selectedProjectId}
           onClose={() => setSelectedProjectId(null)}
+        />
+      )}
+      {confirmProjectId && (
+        <ConfirmModal
+          message="Are you sure you want to delete this project? All tasks will be deleted too."
+          onConfirm={() => {
+            deleteMutation.mutate(confirmProjectId)
+            setConfirmProjectId(null)
+          }}
+          onCancel={() => setConfirmProjectId(null)}
         />
       )}
     </div>

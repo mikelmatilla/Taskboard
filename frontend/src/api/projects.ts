@@ -24,3 +24,8 @@ export const addMember = async (projectId: number, memberEmail: string): Promise
   const response = await api.post(`/projects/${projectId}/members`, { email: memberEmail })
   return response.data
 }
+
+export const updateProject = async (id: number, name: string): Promise<Project> => {
+  const response = await api.put(`/projects/${id}`, { name })
+  return response.data
+}
