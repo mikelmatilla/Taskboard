@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   DndContext,
-  type DragEndEvent,
   type DragOverEvent,
   DragOverlay,
   PointerSensor,
@@ -15,6 +14,7 @@ import { SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-
 import { CSS } from '@dnd-kit/utilities'
 import { getTasks, createTask, updateTaskState, updateTaskPriority, deleteTask } from '../api/tasks'
 import type { Task, TaskState, TaskPriority } from '../types'
+import ProjectDetailModal from '../components/ProjectDetailModal'
 
 const COLUMNS: { state: TaskState; label: string }[] = [
   { state: 'TODO', label: 'To Do' },
@@ -115,6 +115,7 @@ export default function BoardPage() {
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ name: '', description: '', priority: 'MEDIUM' as TaskPriority })
   const [activeTask, setActiveTask] = useState<Task | null>(null)
+  const [showDetail, setShowDetail] = useState(false)
   const lastMutatedRef = useRef<{ taskId: number; state: TaskState } | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, {
@@ -198,7 +199,7 @@ export default function BoardPage() {
     }
   }
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = () => {
     setActiveTask(null)
     lastMutatedRef.current = null
   }
@@ -210,9 +211,19 @@ export default function BoardPage() {
           <button className="btn-secondary" onClick={() => navigate('/projects')}>← Back</button>
           <h1>Board</h1>
         </div>
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-          + New Task
-        </button>
+        <div className="header-right">
+          <button
+            className="btn-icon"
+            onClick={() => setShowDetail(true)}
+            title="Project details"
+            style={{ fontSize: '1.5rem' }}
+          >
+            ⚙
+          </button>
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+            + New Task
+          </button>
+        </div>
       </header>
 
       {showForm && (
@@ -280,6 +291,12 @@ export default function BoardPage() {
             )}
           </DragOverlay>
         </DndContext>
+      )}
+      {showDetail && (
+        <ProjectDetailModal
+          projectId={id}
+          onClose={() => setShowDetail(false)}
+        />
       )}
     </div>
   )
