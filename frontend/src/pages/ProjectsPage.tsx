@@ -56,7 +56,9 @@ export default function ProjectsPage() {
       <header className="header">
         <h1>Taskboard</h1>
         <div className="header-right">
-          <span className="header-user">{user?.name}</span>
+          <span className="header-user" style={{ cursor: 'pointer' }} onClick={() => navigate('/profile')}>
+            {user?.name}
+          </span>
           <button onClick={handleLogout} className="btn-secondary">Logout</button>
         </div>
       </header>

@@ -37,4 +37,11 @@ public class UserService {
         }
         return user;
     }
+
+    public User update(String email, String username, String name) {
+        User user = findByEmail(email);
+        user.setUsername(username);
+        user.setName(name);
+        return userRepository.save(user);
+    }
 }
