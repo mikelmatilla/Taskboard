@@ -1,5 +1,6 @@
 package com.mikelmatilla.taskboard.project;
 
+import com.mikelmatilla.taskboard.task.Task;
 import com.mikelmatilla.taskboard.user.User;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -43,6 +44,9 @@ public class Project {
 
     @Column(nullable = false)
     private LocalDateTime lastUpdateDate;
+    
+    @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Task> tasks = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
