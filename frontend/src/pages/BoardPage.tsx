@@ -15,6 +15,9 @@ import { CSS } from '@dnd-kit/utilities'
 import { getTasks, createTask, updateTaskState, updateTaskPriority, deleteTask } from '../api/tasks'
 import type { Task, TaskState, TaskPriority } from '../types'
 import ProjectDetailModal from '../components/ProjectDetailModal'
+import { getProjectById } from '../api/projects'
+import TaskEditModal from '../components/TaskEditModal'
+import ConfirmModal from '../components/ConfirmModal'
 
 const COLUMNS: { state: TaskState; label: string }[] = [
   { state: 'TODO', label: 'To Do' },
@@ -24,10 +27,11 @@ const COLUMNS: { state: TaskState; label: string }[] = [
 
 const PRIORITY_ORDER = { HIGH: 0, MEDIUM: 1, LOW: 2 }
 
-function TaskCard({ task, onDelete, onPriorityChange }: {
+function TaskCard({ task, onDelete, onPriorityChange, onEdit }: {
   task: Task
   onDelete: (id: number) => void
   onPriorityChange: (id: number, priority: TaskPriority) => void
+  onEdit: (task: Task) => void
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: task.id,
@@ -43,17 +47,20 @@ function TaskCard({ task, onDelete, onPriorityChange }: {
   return (
     <div ref={setNodeRef} style={style} className="task-card">
       <div className="task-header">
-        <select
-          className={`priority priority-${task.priority.toLowerCase()}`}
-          value={task.priority}
-          onChange={(e) => onPriorityChange(task.id, e.target.value as TaskPriority)}
-        >
-          <option value="LOW">LOW</option>
-          <option value="MEDIUM">MEDIUM</option>
-          <option value="HIGH">HIGH</option>
-        </select>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
           <span className="drag-handle" {...listeners} {...attributes}>⠿</span>
+          <select
+            className={`priority priority-${task.priority.toLowerCase()}`}
+            value={task.priority}
+            onChange={(e) => onPriorityChange(task.id, e.target.value as TaskPriority)}
+          >
+            <option value="LOW">LOW</option>
+            <option value="MEDIUM">MEDIUM</option>
+            <option value="HIGH">HIGH</option>
+          </select>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+          <button className="btn-icon" onClick={() => onEdit(task)} style={{ fontSize: '0.85rem' }}>✎</button>
           <button className="btn-icon" onClick={() => onDelete(task.id)}>✕</button>
         </div>
       </div>
@@ -63,12 +70,13 @@ function TaskCard({ task, onDelete, onPriorityChange }: {
   )
 }
 
-function DroppableColumn({ state, label, tasks, onDelete, onPriorityChange }: {
+function DroppableColumn({ state, label, tasks, onDelete, onPriorityChange, onEdit }: {
   state: TaskState
   label: string
   tasks: Task[]
   onDelete: (id: number) => void
   onPriorityChange: (id: number, priority: TaskPriority) => void
+  onEdit: (task: Task) => void
 }) {
   const { setNodeRef } = useDroppable({ id: state })
 
@@ -98,6 +106,7 @@ function DroppableColumn({ state, label, tasks, onDelete, onPriorityChange }: {
               task={task}
               onDelete={onDelete}
               onPriorityChange={onPriorityChange}
+              onEdit={onEdit}
             />
           ))}
         </div>
@@ -117,6 +126,8 @@ export default function BoardPage() {
   const [activeTask, setActiveTask] = useState<Task | null>(null)
   const [showDetail, setShowDetail] = useState(false)
   const lastMutatedRef = useRef<{ taskId: number; state: TaskState } | null>(null)
+  const [editingTask, setEditingTask] = useState<Task | null>(null)
+  const [confirmTaskId, setConfirmTaskId] = useState<number | null>(null)
 
   const sensors = useSensors(useSensor(PointerSensor, {
     activationConstraint: { distance: 8 },
@@ -204,12 +215,17 @@ export default function BoardPage() {
     lastMutatedRef.current = null
   }
 
+  const { data: project } = useQuery({
+    queryKey: ['project', id],
+    queryFn: () => getProjectById(id),
+  })
+
   return (
     <div className="page">
       <header className="header">
         <div className="header-left">
           <button className="btn-secondary" onClick={() => navigate('/projects')}>← Back</button>
-          <h1>Board</h1>
+          <h1>{project?.name ?? 'Board'}</h1>
         </div>
         <div className="header-right">
           <button
@@ -275,10 +291,11 @@ export default function BoardPage() {
                 state={state}
                 label={label}
                 tasks={getTasksByState(state)}
-                onDelete={(taskId) => deleteMutation.mutate(taskId)}
+                onDelete={(taskId) => setConfirmTaskId(taskId)}
                 onPriorityChange={(taskId, priority) =>
                   priorityMutation.mutate({ taskId, priority })
                 }
+                onEdit={(task) => setEditingTask(task)}
               />
             ))}
           </div>
@@ -296,6 +313,23 @@ export default function BoardPage() {
         <ProjectDetailModal
           projectId={id}
           onClose={() => setShowDetail(false)}
+        />
+      )}
+      {editingTask && (
+        <TaskEditModal
+          task={editingTask}
+          projectId={id}
+          onClose={() => setEditingTask(null)}
+        />
+      )}
+      {confirmTaskId && (
+        <ConfirmModal
+          message="Are you sure you want to delete this task?"
+          onConfirm={() => {
+            deleteMutation.mutate(confirmTaskId)
+            setConfirmTaskId(null)
+          }}
+          onCancel={() => setConfirmTaskId(null)}
         />
       )}
     </div>

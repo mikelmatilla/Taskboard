@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { getProjectById, addMember } from '../api/projects'
+import { getProjectById, addMember, updateProject } from '../api/projects'
 
 interface Props {
   projectId: number
@@ -11,6 +11,8 @@ export default function ProjectDetailModal({ projectId, onClose }: Props) {
   const queryClient = useQueryClient()
   const [email, setEmail] = useState('')
   const [error, setError] = useState('')
+  const [editingName, setEditingName] = useState(false)
+  const [newName, setNewName] = useState('')  
 
   const { data: project, isLoading } = useQuery({
     queryKey: ['project', projectId],
@@ -35,12 +37,65 @@ export default function ProjectDetailModal({ projectId, onClose }: Props) {
     if (email.trim()) addMemberMutation.mutate(email.trim())
   }
 
+  const updateMutation = useMutation({
+    mutationFn: (name: string) => updateProject(projectId, name),
+    onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['project', projectId] })
+        queryClient.invalidateQueries({ queryKey: ['projects'] })
+        setEditingName(false)
+    },
+  })
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{project?.name}</h2>
-          <button className="btn-icon" onClick={onClose} style={{ fontSize: '1.2rem' }}>✕</button>
+            {editingName ? (
+                <form
+                onSubmit={(e) => {
+                    e.preventDefault()
+                    if (newName.trim()) updateMutation.mutate(newName.trim())
+                }}
+                style={{ display: 'flex', gap: '0.5rem', flex: 1, marginRight: '0.5rem' }}
+                >
+                <input
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    autoFocus
+                    style={{
+                    flex: 1,
+                    padding: '0.4rem 0.6rem',
+                    border: '1.5px solid var(--primary)',
+                    borderRadius: 'var(--radius-md)',
+                    fontSize: '1rem',
+                    fontWeight: 600,
+                    outline: 'none',
+                    }}
+                />
+                <button type="submit" className="btn-primary" disabled={updateMutation.isPending}>
+                    Save
+                </button>
+                <button type="button" className="btn-secondary" onClick={() => setEditingName(false)}>
+                    Cancel
+                </button>
+                </form>
+            ) : (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h2>{project?.name}</h2>
+                <button
+                    className="btn-icon"
+                    onClick={() => {
+                    setNewName(project?.name ?? '')
+                    setEditingName(true)
+                    }}
+                    title="Edit name"
+                    style={{ fontSize: '0.9rem' }}
+                >
+                    ✎
+                </button>
+                </div>
+            )}
+            <button className="btn-icon" onClick={onClose} style={{ fontSize: '1.2rem' }}>✕</button>
         </div>
 
         {isLoading ? (
