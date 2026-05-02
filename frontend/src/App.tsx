@@ -5,6 +5,7 @@ import RegisterPage from './pages/RegisterPage'
 import ProjectsPage from './pages/ProjectsPage'
 import PrivateRoute from './components/PrivateRoute'
 import BoardPage from './pages/BoardPage'
+import ProfilePage from './pages/ProfilePage'
 
 const queryClient = new QueryClient()
 
@@ -24,6 +25,11 @@ function App() {
           <Route path="/projects/:projectId" element={
             <PrivateRoute>
               <BoardPage />
+            </PrivateRoute>
+          } />
+          <Route path="/profile" element={
+            <PrivateRoute>
+              <ProfilePage />
             </PrivateRoute>
           } />
         </Routes>
