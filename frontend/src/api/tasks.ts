@@ -29,6 +29,15 @@ export const updateTaskState = async (
   return response.data
 }
 
+export const updateTaskPriority = async (
+  projectId: number,
+  taskId: number,
+  priority: TaskPriority
+): Promise<Task> => {
+  const response = await api.patch(`/projects/${projectId}/tasks/${taskId}/priority`, { priority })
+  return response.data
+}
+
 export const deleteTask = async (projectId: number, taskId: number): Promise<void> => {
   await api.delete(`/projects/${projectId}/tasks/${taskId}`)
 }
