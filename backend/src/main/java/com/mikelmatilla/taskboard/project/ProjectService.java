@@ -4,6 +4,7 @@ import com.mikelmatilla.taskboard.user.User;
 import com.mikelmatilla.taskboard.user.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -22,6 +23,7 @@ public class ProjectService {
         return projectRepository.save(project);
     }
 
+    @Transactional
     public List<Project> getProjectsForUser(String email) {
         User user = userService.findByEmail(email);
         List<Project> owned = projectRepository.findByOwner(user);
@@ -30,6 +32,7 @@ public class ProjectService {
         return owned;
     }
 
+    @Transactional
     public Project getById(Long id, String email) {
         Project project = projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
