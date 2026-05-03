@@ -13,6 +13,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.beans.factory.annotation.Value;
 import java.util.List;
 
 import lombok.RequiredArgsConstructor;
@@ -23,6 +24,9 @@ import lombok.RequiredArgsConstructor;
 public class SecurityConfig {
     
     private final JwtAuthFilter jwtAuthFilter;
+
+    @Value("${ALLOWED_ORIGIN:http://localhost:5173}")
+    private String allowedOrigin;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -51,7 +55,7 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
             "http://localhost:5173",
-            "https://taskboard-p9pq886ml-mikelmatillas-projects.vercel.app"
+            allowedOrigin
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
