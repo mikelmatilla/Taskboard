@@ -10,6 +10,7 @@ frontend/dist/
 frontend/.vite/
 frontend/.env
 frontend/.env.local
+frontend/.env.development
 
 # VS Code
 .vscode/
