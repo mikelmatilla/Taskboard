@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
@@ -11,7 +12,9 @@ import java.util.Date;
 @Service
 public class JwtService {
     
-    private static final String SECRET = "taskboard-secret-key-must-be-at-least-32-chars";
+    @Value("${JWT_SECRET:taskboard-secret-key-must-be-at-least-32-chars}")
+    private String SECRET;
+
     private static final long EXPIRATION = 1000 * 60 * 60 * 24; // 24 horas
 
     private SecretKey getKey() {
