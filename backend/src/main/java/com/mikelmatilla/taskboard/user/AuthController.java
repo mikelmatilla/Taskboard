@@ -24,6 +24,7 @@ public class AuthController {
             request.username(),
             request.name()
         );
+        String token = jwtService.generateToken(user.getEmail());
         return ResponseEntity.ok(UserResponse.from(user));
     }
 
