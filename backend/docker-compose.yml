@@ -1,0 +1,10 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: taskboard-db
+    environment:
+      POSTGRES_DB: taskboard
+      POSTGRES_USER: taskboard_user
+      POSTGRES_PASSWORD: taskboard_pass
+    ports:
+      - "5432:5432"
