@@ -17,14 +17,15 @@ public class AuthController {
 
 
     @PostMapping("/register")
-    public ResponseEntity<UserResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
         User user = userService.register(
             request.email(),
             request.password(),
             request.username(),
             request.name()
         );
-        return ResponseEntity.ok(UserResponse.from(user));
+        String token = jwtService.generateToken(user.getEmail());
+        return ResponseEntity.ok(new AuthResponse(token, UserResponse.from(user)));
     }
 
     @PostMapping("/login")
